@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Калькулятор</title>
+  <title>Игра угадай ЯП</title>
   <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body id="body">
@@ -17,8 +17,8 @@
     </section>
     <section id="AddNewAnimal">
         <form id="addNew" method="post">
-            <input type="text" id="Inpquestion" name="question" placeholder="Введите вопрос, который отличает ваше животное от названного:">
-            <input type="text" id="Inpanswer" name="answer" placeholder="Введите название животного">
+            <input type="text" id="Inpquestion" name="question" placeholder="Введите вопрос, который отличает ваш ЯП от названного:">
+            <input type="text" id="Inpanswer" name="answer" placeholder="Введите название ЯП">
             <input type="button" name="add" value="OK" onclick="Add()" >
         </form>
     </section>
@@ -96,7 +96,7 @@
                 body.insertBefore(newq, answer);
             }
             else {
-                newq.innerHTML = "<p>Я не знаю такое животное. Давайте добавим его:</p>";
+                newq.innerHTML = "<p>Я не знаю такой ЯП. Давайте добавим его:</p>";
                 body.insertBefore(newq, answer);
                 answer.style.display="none";
                 add.style.display = "block";
