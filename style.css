@@ -1,0 +1,14 @@
+body{
+    background-color: #000;
+    color: #fff;
+}
+input[type="button"]{
+    background-color: rgb(114, 113, 113);
+    color: #fff;
+    width: 10rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+}
+.paddind {
+    padding-left: 9rem;
+}

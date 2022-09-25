@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Калькулятор</title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body id="body">
+    <section id="content">
+        <p id="first"></p> 
+    </section>
+    <section id="answer">
+        <form method="post">
+            <input type="button" name="answer" value="да" onclick="Yes()">
+            <input type="button" name="answer" value="нет" onclick="No()">
+        </form>
+    </section>
+    <section id="AddNewAnimal">
+        <form id="addNew" method="post">
+            <input type="text" id="Inpquestion" name="question" placeholder="Введите вопрос, который отличает ваше животное от названного:">
+            <input type="text" id="Inpanswer" name="answer" placeholder="Введите название животного">
+            <input type="button" name="add" value="OK" onclick="Add()" >
+        </form>
+    </section>
+    <section id="nextAction">
+        <form method="post">
+            <input type="button" name="why" value="Почему такой ответ?" onclick="ExplainAnswer()">
+            <input type="button" name="new" value="Начать игру заново" onclick="newGame()">
+            <input type="button" name="dbview" value="Хочу видеть всю базу знаний." onclick="dataBaseview()">
+        </form>
+    </section>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script type="text/javascript" >
+        //var fs = require("fs");
+
+        function getFile(fileName) {
+            let req = new XMLHttpRequest();
+            req.open('GET', fileName, false);
+            req.send(null);
+            return JSON.parse(req.responseText);
+        }
+
+        let jsonData = getFile('data.json');
+        document.getElementById("first").innerHTML = "<p> Это"+jsonData[0].question+"?</p>";
+        console.log(jsonData);
+        let nowQuestion = 0;
+        let count = jsonData.length;
+        let indexs = [];
+
+        let answer = document.getElementById("answer");
+        let body = document.getElementById("body");
+        let add = document.getElementById("AddNewAnimal");
+        let nextAction = document.getElementById("nextAction");
+
+        add.style.display = "none";
+        nextAction.style.display = "none";
+
+        function Yes(){
+            indexs.push(nowQuestion);
+            let p = document.createElement('section');
+            p.innerHTML = "<p>Да</p>";
+            body.insertBefore(p, answer);
+
+            let newq = document.createElement('section');
+            let newId = Number(jsonData[nowQuestion].yes);
+            console.log(newId);
+            if (newId > 0) {
+                nowQuestion= newId;
+                console.log("jsonData[newId].question");
+                let newq = document.createElement('section');
+                newq.innerHTML = "<p> Это "+String(jsonData[newId].question)+" ? </p>";
+                body.insertBefore(newq, answer);
+            }
+            else {
+                newq.innerHTML = "<p> Я выиграл! Это "+String(jsonData[nowQuestion].question)+"!</p>";
+                body.insertBefore(newq, answer);
+                answer.style.display="none";
+                nextAction.style.display = "block";
+            }
+        }
+
+        function No(){
+            indexs.push(nowQuestion);
+            let p = document.createElement('section');
+            p.innerHTML = "<p>Нет</p>";
+            body.insertBefore(p, answer);
+
+            let newq = document.createElement('section');
+            let newId = Number(jsonData[nowQuestion].no);
+            console.log(newId);
+            if (newId > 0) {
+                nowQuestion= newId
+                console.log("jsonData[newId].question");
+                let newq = document.createElement('section');
+                newq.innerHTML = "<p> Это "+String(jsonData[newId].question)+" ?</p>";
+                body.insertBefore(newq, answer);
+            }
+            else {
+                newq.innerHTML = "<p>Я не знаю такое животное. Давайте добавим его:</p>";
+                body.insertBefore(newq, answer);
+                answer.style.display="none";
+                add.style.display = "block";
+            }
+        }   
+        function CorrestAnswer(){
+            if (jsonData[nowQuestion].no == -1 || jsonData[nowQuestion].yes == -1)
+            {
+                let newq = document.createElement('section');
+                newq.innerHTML = "<p> Это "+String(jsonData[newId].question)+" ?</p>";
+                body.insertBefore(newq, answer);
+                //answer.style.display="none";
+            }
+        }
+        function Add(){
+            let quest = document.getElementById("Inpquestion").value;
+            let ans = document.getElementById("Inpanswer").value;
+            jsonData[count] = ({ "id": count, "question": jsonData[nowQuestion].question, "no": -1, "yes": -1});
+            jsonData[count+1] = ({ "id": count+1, "question": ans, "no": -1, "yes": -1});
+            jsonData[nowQuestion].yes = count+1;
+            jsonData[nowQuestion].no = count;
+            jsonData[nowQuestion].question = quest;
+            count+=2
+            console.log(count);
+            console.log(jsonData);
+
+            const json2 = JSON.stringify(jsonData);
+            $.ajax({
+                type: 'post',
+                url: 'save.php', 
+                data: {j: json2},
+            }).done(function(answeer) {});
+
+            document.getElementById("addNew").reset();     
+            add.style.display = "none";
+            answer.style.display="none";
+            nextAction.style.display = "block";
+        }
+        function newGame(){
+            nowQuestion = 0;
+            let p = document.createElement('section');
+            p.innerHTML = "<p> Начнём игру заново </p>";
+            body.insertBefore(p, answer);
+            let p1 = document.createElement('section');
+            p1.innerHTML = "<p> Это "+jsonData[0].question+"?</p>";
+            body.insertBefore(p1, answer);
+            indexs = [];
+            answer.style.display="block";
+            nextAction.style.display = "none";
+        }
+
+        function ExplainAnswer(){
+            console.log(indexs);
+            let p = document.createElement('section');
+            p.innerHTML = "<p>";
+            for(var i = 0; i < indexs.length; i++) {
+                if (i == indexs.length-1){
+                    p.innerHTML += "Следовательно это "+String(jsonData[indexs[i]].question)+".";
+                }
+                else{
+                    if (indexs[i+1] == jsonData[indexs[i]].yes) {
+                        p.innerHTML += "Это "+String(jsonData[indexs[i]].question)+". ";
+                    }
+                    else {
+                        p.innerHTML += " Это не "+String(jsonData[indexs[i]].question)+". ";
+                    }      
+                }    
+            }
+            p.innerHTML += "</p>";
+            body.insertBefore(p, answer);
+        }
+
+        function dataBaseview(){
+            console.log(indexs);
+            let p = document.createElement('section');
+            p.innerHTML = "<p>";
+            let questLeng = " ";
+            console.log(jsonData[0].question.length);
+            for(var i=1; i < jsonData[0].question.length+1; i++){
+                questLeng+=" ";
+            }
+            console.log("+"+questLeng+"+")
+            for(var i = 0; i < indexs.length; i++) {
+                if (i == indexs.length-1){
+                    p.innerHTML += "<p class=\"padding\">" +String(jsonData[indexs[i]].question)+".</p>";
+                }
+                else if (i == 0){
+                    if (indexs[i+1] == jsonData[indexs[i]].yes) {
+                        p.innerHTML += "<p>"+ String(jsonData[indexs[i]].question)+" -> нет </p>";
+                        p.innerHTML += "<p class=\"padding\"> | </p>";
+                        p.innerHTML += "<p class=\"padding\"> да </p>";
+                        p.innerHTML += "<p class=\"padding\"> | </p>";
+                    }
+                    else {
+                        p.innerHTML += "<p>"+String(jsonData[indexs[i]].question)+"-> да </p>";
+                        p.innerHTML += "<p class=\"padding\"> | </p>";
+                        p.innerHTML += "<p class=\"padding\"> нет </p>";
+                        p.innerHTML += "<p class=\"padding\"> | </p>";
+                    }    
+                }
+                else{
+                    if (indexs[i+1] == jsonData[indexs[i]].yes) {
+                        p.innerHTML += "<p class=\"padding\">" +String(jsonData[indexs[i]].question)+" -> нет </p>";
+                        p.innerHTML += "<p class=\"padding\">| </p>";
+                        p.innerHTML += "<p class=\"padding\"> да </p>";
+                        p.innerHTML += "<p class=\"padding\"> | </p>";
+                    }
+                    else {
+                        p.innerHTML += "<p class=\"padding\">"+ String(jsonData[indexs[i]].question)+"-> да </p>";
+                        p.innerHTML += "<p class=\"padding\"> |</p>";
+                        p.innerHTML += "<p class=\"padding\"> нет </p>";
+                        p.innerHTML += "<p class=\"padding\">| </p>";
+                    }      
+                }    
+            }
+            p.innerHTML += "</p>";
+            body.insertBefore(p, answer);
+        }
+    </script>
+</body>
+</html>
